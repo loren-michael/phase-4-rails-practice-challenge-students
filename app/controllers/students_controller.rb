@@ -1,8 +1,17 @@
 class StudentsController < ApplicationController
 
+  def index 
+    students = Student.all
+    render json: students, only: [:name, :age, :major], include: :instructor
+  end
+
   def show
-    find_student
-    render json: student, include: :instructors
+    student = find_student
+    if student
+      render json: student, include: :instructor
+    else
+      render json: { error: "This student could not be found." }
+    end
   end
 
   def create
@@ -10,23 +19,23 @@ class StudentsController < ApplicationController
     if student.valid?
       render json: student, status: :created
     else
-      render json: { student.errors.full_messages }, status: :unprocessible_entity
+      render json: { errors: student.error.full_messages }, status: :unprocessible_entity
     end
     
   end
 
   def update
-    find_student
+    student = find_student
     if student
       student.update(student_params)
-      render json: student, status: :updated      
+      render json: student, status: :accepted      
     else
       render json: { error: "This student could not be found." }
     end
   end
 
   def destroy
-    find_student
+    student = find_student
     if student
       student.destroy
       render json: { message: "This student has been deleted." }
